@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kan-of-Worms Idiomator | Idioms Gone Gloriously Wrong</title>
+  <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --pink:    #f03e8c;
+      --green:   #b8e000;
+      --purple:  #6a3daa;
+      --teal:    #2cbfb0;
+      --orange:  #ff7c2a;
+      --yellow:  #ffe535;
+      --dark:    #1a1228;
+      --cream:   #fffbe8;
+      --red:     #e03030;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--dark);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(240,62,140,0.18) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(44,191,176,0.15) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(106,61,170,0.12) 0%, transparent 60%);
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      padding: 2.5rem 1rem 1rem;
+    }
+
+    .brand-tag {
+      display: inline-block;
+      background: var(--orange);
+      color: white;
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.25rem 1rem;
+      border-radius: 100px;
+      border: 3px solid white;
+      margin-bottom: 1rem;
+    }
+
+    .main-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2.4rem, 7vw, 5rem);
+      line-height: 0.95;
+      color: var(--yellow);
+      text-shadow:
+        4px 4px 0 var(--orange),
+        8px 8px 0 var(--purple);
+      letter-spacing: 0.02em;
+    }
+
+    .main-title span { color: var(--green); }
+
+    .subtitle {
+      font-family: 'Boogaloo', cursive;
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      color: var(--teal);
+      margin-top: 0.6rem;
+      letter-spacing: 0.05em;
+    }
+
+    .creator-credit {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 0.4rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── INPUT SECTION ── */
+    .input-section {
+      max-width: 680px;
+      margin: 2rem auto;
+      padding: 0 1.2rem;
+    }
+
+    .can-label-input {
+      background: var(--teal);
+      border-radius: 18px;
+      border: 5px solid var(--dark);
+      box-shadow: 6px 6px 0 var(--orange), 10px 10px 0 var(--purple);
+      padding: 1.8rem 2rem;
+      position: relative;
+    }
+
+    .can-label-input::before {
+      content: 'KAN-OF-WORMS IDIOMATOR';
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--dark);
+      display: block;
+      text-align: center;
+      margin-bottom: 0.8rem;
+      opacity: 0.6;
+    }
+
+    .input-label {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      color: var(--dark);
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+
+    .topic-input {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: 4px solid var(--dark);
+      border-radius: 12px;
+      background: var(--cream);
+      color: var(--dark);
+      outline: none;
+      transition: box-shadow 0.2s;
+    }
+
+    .topic-input:focus {
+      box-shadow: 0 0 0 3px var(--orange);
+    }
+
+    .topic-input::placeholder { color: #999; font-weight: 400; }
+
+    /* Idiom reveal strip */
+    .idiom-reveal {
+      display: none;
+      margin-top: 1rem;
+      background: var(--dark);
+      border: 3px dashed var(--yellow);
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      font-family: 'Boogaloo', cursive;
+      font-size: 1rem;
+      color: var(--yellow);
+      letter-spacing: 0.03em;
+      text-align: center;
+    }
+
+    .idiom-reveal .idiom-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--teal);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    /* Filter checkboxes */
+    .filters-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.95rem;
+      color: var(--dark);
+      margin: 1rem 0 0.5rem;
+    }
+
+    .filters-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .filter-chip {
+      cursor: pointer;
+    }
+
+    .filter-chip input { display: none; }
+
+    .filter-chip span {
+      display: inline-block;
+      padding: 0.3rem 0.75rem;
+      border-radius: 100px;
+      border: 3px solid var(--dark);
+      background: white;
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+
+    .filter-chip input:checked + span {
+      background: var(--purple);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .generate-btn {
+      width: 100%;
+      margin-top: 1.4rem;
+      padding: 1rem;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      letter-spacing: 0.05em;
+      color: white;
+      background: var(--orange);
+      border: 4px solid var(--dark);
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 5px 5px 0 var(--purple);
+      transition: transform 0.1s, box-shadow 0.1s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .generate-btn:hover:not(:disabled) {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0 var(--purple);
+    }
+
+    .generate-btn:active:not(:disabled) {
+      transform: translate(3px, 3px);
+      box-shadow: 2px 2px 0 var(--purple);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* ── RESULTS ── */
+    #results {
+      max-width: 720px;
+      margin: 0 auto 3rem;
+      padding: 0 1.2rem;
+    }
+
+    .loading-can {
+      text-align: center;
+      padding: 3rem;
+      display: none;
+    }
+
+    .loading-can .worm {
+      font-size: 3rem;
+      display: inline-block;
+      animation: wiggle 0.5s infinite alternate;
+    }
+
+    @keyframes wiggle {
+      from { transform: rotate(-15deg) scale(1); }
+      to   { transform: rotate(15deg) scale(1.1); }
+    }
+
+    .loading-can p {
+      font-family: 'Boogaloo', cursive;
+      font-size: 1.3rem;
+      color: var(--yellow);
+      margin-top: 1rem;
+    }
+
+    /* individual idiom card */
+    .idiom-card {
+      background: var(--cream);
+      border: 5px solid var(--dark);
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      box-shadow: 7px 7px 0 var(--orange);
+      animation: popIn 0.4s cubic-bezier(.175,.885,.32,1.275) both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85) rotate(-2deg); opacity: 0; }
+      to   { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .idiom-card:nth-child(even) {
+      box-shadow: 7px 7px 0 var(--teal);
+    }
+
+    .idiom-card:nth-child(3n) {
+      box-shadow: 7px 7px 0 var(--pink);
+    }
+
+    .idiom-card-header {
+      background: var(--purple);
+      padding: 0.7rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .idiom-number {
+      font-family: 'Fredoka One', cursive;
+      color: var(--yellow);
+      font-size: 1.1rem;
+    }
+
+    .humor-badge {
+      background: var(--yellow);
+      color: var(--dark);
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.7rem;
+      border-radius: 100px;
+      border: 2px solid var(--dark);
+      text-transform: uppercase;
+    }
+
+    /* The idiom source banner */
+    .idiom-source-bar {
+      background: var(--orange);
+      padding: 0.4rem 1.2rem;
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.88rem;
+      color: var(--dark);
+      letter-spacing: 0.03em;
+    }
+
+    .idiom-source-bar em {
+      font-style: normal;
+      font-weight: 900;
+      color: white;
+    }
+
+    /* Humor mix bar */
+    .humor-mix-bar {
+      background: var(--purple);
+      padding: 0.5rem 1.2rem;
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.85rem;
+      color: var(--yellow);
+      letter-spacing: 0.03em;
+    }
+
+    .idiom-body {
+      padding: 1.4rem 1.5rem;
+    }
+
+    /* The big quote */
+    .idiom-quote {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+      color: var(--purple);
+      line-height: 1.25;
+      margin-bottom: 0.5rem;
+      position: relative;
+      padding-left: 0.3rem;
+    }
+
+    .idiom-quote::before {
+      content: '"';
+      font-size: 4rem;
+      color: var(--orange);
+      opacity: 0.25;
+      position: absolute;
+      top: -1rem;
+      left: -0.5rem;
+      font-family: Georgia, serif;
+      line-height: 1;
+    }
+
+    .idiom-attribution {
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.95rem;
+      color: var(--red);
+      margin-bottom: 1.2rem;
+      font-style: italic;
+    }
+
+    .idiom-section-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(0,0,0,0.4);
+      margin-bottom: 0.3rem;
+      margin-top: 0.9rem;
+    }
+
+    .idiom-explanation {
+      font-size: 0.97rem;
+      line-height: 1.55;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    /* detail boxes */
+    .idiom-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .idiom-detail-box {
+      background: var(--dark);
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+    }
+
+    .idiom-detail-box .label {
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--teal);
+      margin-bottom: 0.2rem;
+    }
+
+    .idiom-detail-box .value {
+      font-size: 0.88rem;
+      color: var(--cream);
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .idiom-detail-box.full { grid-column: 1 / -1; }
+
+    /* scene notes */
+    .idiom-scene-notes {
+      background: var(--yellow);
+      border: 3px dashed var(--dark);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--dark);
+      line-height: 1.5;
+    }
+
+    .idiom-scene-notes strong {
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    /* copy-quote button */
+    .copy-btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.45rem 1.1rem;
+      font-family: 'Boogaloo', cursive;
+      font-size: 0.9rem;
+      background: var(--pink);
+      color: white;
+      border: 3px solid var(--dark);
+      border-radius: 100px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      letter-spacing: 0.04em;
+    }
+
+    .copy-btn:hover { transform: scale(1.05); }
+    .copy-btn.copied { background: var(--teal); }
+
+    /* error */
+    .error-box {
+      background: #fff0f0;
+      border: 4px solid var(--red);
+      border-radius: 14px;
+      padding: 1.2rem 1.5rem;
+      text-align: center;
+      color: var(--red);
+      font-family: 'Boogaloo', cursive;
+      font-size: 1.1rem;
+    }
+
+    /* footer */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: rgba(255,255,255,0.25);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    footer a { color: var(--teal); text-decoration: none; }
+
+    .worm-strip {
+      text-align: center;
+      font-size: 1.5rem;
+      letter-spacing: 0.3em;
+      padding: 0.5rem;
+      opacity: 0.35;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-tag">💬 Kan-of-Worms · Idiomator</div>
+    <h1 class="main-title">THE<br><span>IDIOMATOR</span></h1>
+    <p class="subtitle">American Idioms. Any Topic. Total Nonsense Wisdom.</p>
+    <p class="creator-credit">Created by Studio Bits of Gravity · Happy Grouch Cartoonist</p>
+  </header>
+
+  <div class="worm-strip">💬💬💬💬💬💬💬💬💬</div>
+
+  <div class="input-section">
+    <div class="can-label-input">
+      <label class="input-label" for="topic">Enter a topic everyone knows about:</label>
+      <input
+        class="topic-input"
+        id="topic"
+        type="text"
+        placeholder="e.g. working from home, dating apps, fast food, AI..."
+        maxlength="120"
+      />
+
+      <div class="idiom-reveal" id="idiomReveal">
+        <span class="idiom-label">🎲 Random Idiom Selected</span>
+        <span id="idiomText">—</span>
+      </div>
+
+      <p class="filters-title">Humor filters (pick any, or leave all for random mix):</p>
+      <div class="filters-grid" id="filters">
+        <label class="filter-chip"><input type="checkbox" value="Irony" /><span>🔄 Irony</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Wordplay" /><span>🔤 Wordplay</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Hyperbole" /><span>📢 Hyperbole</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Deadpan" /><span>😐 Deadpan</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Absurdist" /><span>🌀 Absurdist</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Sarcasm" /><span>🙄 Sarcasm</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Parody" /><span>🎬 Parody</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Misplaced Focus" /><span>🔍 Misplaced Focus</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Madcap" /><span>🤪 Madcap</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Analogy" /><span>🔗 Analogy</span></label>
+        <label class="filter-chip"><input type="checkbox" value="Metahumor" /><span>🪞 Metahumor</span></label>
+      </div>
+
+      <button class="generate-btn" id="generateBtn" onclick="generate()">
+        💬 IDIOMIZE IT! 💬
+      </button>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="loading-can" id="loading">
+      <div class="worm">💬</div>
+      <p>Mangling idioms with reckless abandon...</p>
+    </div>
+    <div id="cards"></div>
+  </div>
+
+  <footer>
+    <p>Kan-of-Worms Idiomator · <a href="https://quirkyflashchronicles.com" target="_blank">Quirky Flash Chronicles</a> · Studio Bits of Gravity</p>
+    <p style="margin-top:0.4rem">Happy Grouch Cartoonist · @ChatterWhackys</p>
+  </footer>
+
+  <script>
+    // ── CONFIG — replace with your Cloudflare Worker URL ──
+    const PROXY_URL = 'https://gravificer-proxy.mvphillips.workers.dev/';
+
+    // ── American Idioms bank ──
+    const IDIOMS = [
+      { idiom: "Bite the bullet", meaning: "Endure a painful or difficult situation" },
+      { idiom: "Hit the nail on the head", meaning: "Do or say something exactly right" },
+      { idiom: "Spill the beans", meaning: "Reveal secret information" },
+      { idiom: "Under the weather", meaning: "Feeling ill or low" },
+      { idiom: "Kick the bucket", meaning: "Die" },
+      { idiom: "Break a leg", meaning: "Good luck" },
+      { idiom: "Costs an arm and a leg", meaning: "Very expensive" },
+      { idiom: "The ball is in your court", meaning: "It's your decision or move now" },
+      { idiom: "Bite off more than you can chew", meaning: "Take on more than you can handle" },
+      { idiom: "Burn bridges", meaning: "Permanently damage a relationship" },
+      { idiom: "Caught between a rock and a hard place", meaning: "Facing two equally bad options" },
+      { idiom: "Don't judge a book by its cover", meaning: "Don't form an opinion from appearances alone" },
+      { idiom: "Elephant in the room", meaning: "An obvious problem nobody wants to address" },
+      { idiom: "Throw someone under the bus", meaning: "Sacrifice someone else for your own benefit" },
+      { idiom: "Let the cat out of the bag", meaning: "Accidentally reveal a secret" },
+      { idiom: "Hit the sack", meaning: "Go to sleep" },
+      { idiom: "Miss the boat", meaning: "Miss an opportunity" },
+      { idiom: "On the fence", meaning: "Undecided or neutral" },
+      { idiom: "Piece of cake", meaning: "Very easy" },
+      { idiom: "Pull someone's leg", meaning: "Joke or tease someone" },
+      { idiom: "Raining cats and dogs", meaning: "Raining very heavily" },
+      { idiom: "The best of both worlds", meaning: "Enjoy two advantages simultaneously" },
+      { idiom: "Bite the hand that feeds you", meaning: "Act against the person who helps you" },
+      { idiom: "Jump on the bandwagon", meaning: "Follow a trend or join a popular activity" },
+      { idiom: "Throw caution to the wind", meaning: "Act recklessly without worry" },
+      { idiom: "Barking up the wrong tree", meaning: "Pursuing the wrong course of action" },
+      { idiom: "Cut to the chase", meaning: "Get to the point without delay" },
+      { idiom: "Hit the ground running", meaning: "Start something energetically and with momentum" },
+      { idiom: "The whole nine yards", meaning: "Everything, the complete amount" },
+      { idiom: "Burn the midnight oil", meaning: "Work very late into the night" },
+      { idiom: "Get out of bed on the wrong side", meaning: "Start the day in a bad mood" },
+      { idiom: "It takes two to tango", meaning: "Both parties are responsible for a situation" },
+      { idiom: "Once in a blue moon", meaning: "Very rarely" },
+      { idiom: "Straight from the horse's mouth", meaning: "Directly from the original source" },
+      { idiom: "Steal someone's thunder", meaning: "Upstage someone or take their credit" },
+      { idiom: "The tip of the iceberg", meaning: "A small, visible part of a larger problem" },
+      { idiom: "Add fuel to the fire", meaning: "Worsen an already bad situation" },
+      { idiom: "Up in the air", meaning: "Uncertain or undecided" },
+      { idiom: "Go back to the drawing board", meaning: "Start over from scratch" },
+      { idiom: "A blessing in disguise", meaning: "Something good that seemed bad at first" },
+      { idiom: "Speak of the devil", meaning: "Said when someone appears just after being mentioned" },
+      { idiom: "Hit below the belt", meaning: "Do or say something unfair or cruel" },
+      { idiom: "Pull yourself up by your bootstraps", meaning: "Succeed through your own efforts alone" },
+      { idiom: "The last straw", meaning: "The final problem in a series that causes a reaction" },
+      { idiom: "Bite the dust", meaning: "Fail or die" },
+      { idiom: "Drop the ball", meaning: "Fail to do something expected" },
+      { idiom: "Go the extra mile", meaning: "Put in more effort than required" },
+      { idiom: "In hot water", meaning: "In trouble or a difficult situation" },
+      { idiom: "Let sleeping dogs lie", meaning: "Avoid stirring up old problems" },
+      { idiom: "Shoot yourself in the foot", meaning: "Accidentally make things worse for yourself" },
+    ];
+
+    const HUMOR_DEFS = {
+      Irony:            "The intended meaning is the opposite of what's said — delivered with a straight face.",
+      Wordplay:         "Puns, double meanings, or repurposed idiom words to create a new joke.",
+      Hyperbole:        "An exaggeration taken to an impossible, absurd extreme.",
+      Deadpan:          "Completely serious tone used to deliver utter nonsense.",
+      Absurdist:        "Logic is abandoned entirely — anything goes and it somehow makes sense.",
+      Sarcasm:          "Biting, pointed mockery of the subject dressed as a compliment.",
+      Parody:           "Mimicking the style of something well-known to mock it.",
+      "Misplaced Focus":"Deliberately ignoring the important thing to fixate on something trivial.",
+      Madcap:           "Pure wild silliness — wacky energy, no rules, anything-goes chaos.",
+      Analogy:          "Comparing two wildly different things to illuminate both in a funny way.",
+      Metahumor:        "Humor that jokes about humor itself, or the idiom joking about being an idiom.",
+    };
+
+    function pickRandomIdiom() {
+      return IDIOMS[Math.floor(Math.random() * IDIOMS.length)];
+    }
+
+    async function generate() {
+      const topic = document.getElementById('topic').value.trim();
+      if (!topic) {
+        alert('Please enter a topic first!');
+        return;
+      }
+
+      // Pick a random idiom
+      const selected = pickRandomIdiom();
+      document.getElementById('idiomText').textContent = `"${selected.idiom}" — ${selected.meaning}`;
+      document.getElementById('idiomReveal').style.display = 'block';
+
+      const checked = [...document.querySelectorAll('#filters input:checked')].map(c => c.value);
+      const filtersToUse = checked.length > 0 ? checked : Object.keys(HUMOR_DEFS);
+
+      const filterDescriptions = filtersToUse
+        .map(f => `- ${f}: ${HUMOR_DEFS[f]}`)
+        .join('\n');
+
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      btn.textContent = '💬 Mangling idioms...';
+
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('cards').innerHTML = '';
+
+      const humorDefsText = Object.entries(HUMOR_DEFS)
+        .map(([k, v]) => `- ${k}: ${v}`)
+        .join('\n');
+
+      const systemPrompt = `You are the creative engine of the "Kan-of-Worms Idiomator" — a whimsical quote generator that takes an American idiom and a user-supplied topic and produces short, funny, slightly absurd quotes by mashing them together.
+
+The quotes should feel like a bumper sticker, fortune cookie, or self-help book title that got scrambled in a blender. They are SHORT (1-2 sentences max), punchy, and read like real wisdom that is completely unhinged.
+
+The idiom should be visibly twisted, warped, or reapplied to the topic in an unexpected way — the original meaning should be recognizable but hilariously misapplied.
+
+You have humor techniques to layer together. The best quotes combine 2-3 techniques.
+
+THE HUMOR TECHNIQUES:
+${humorDefsText}
+
+You must respond ONLY with valid JSON. No preamble, no markdown, no explanation outside the JSON.`;
+
+      const userPrompt = `Topic: "${topic}"
+American Idiom: "${selected.idiom}" (original meaning: "${selected.meaning}")
+
+Active humor filters (use only these, mix them freely):
+${filterDescriptions}
+
+Generate exactly 3 different whimsical quotes that mash the idiom with the topic. Each quote should:
+- Be short (1-2 punchy sentences)
+- Feel like twisted wisdom, a fortune cookie gone wrong, or a self-help title from a parallel universe
+- Make the idiom recognizable but hilariously misapplied to the topic
+- Use a different combination of 2-3 active humor filters for variety
+
+Return a JSON array of 3 objects. Each object must have these exact keys:
+- "quote": string — the short, punchy mashup quote itself (1-2 sentences, the star of the show)
+- "attribution": string — a fake absurd source/author (e.g. "— The Department of Coffee Disasters, 2019" or "— Ancient Gym Proverb, probably")
+- "humorTypes": array of strings — 2-3 humor filters used (from: ${filtersToUse.join(', ')})
+- "humorMix": string — one sentence on HOW the humor techniques combine to land the joke
+- "idiomTwist": string — one sentence explaining exactly how the original idiom was warped to fit the topic
+- "usedIdiom": string — the idiom phrase as it appears in or inspired the quote
+- "sceneNotes": string — a vivid 1-2 sentence description of a cartoon illustration that could accompany this quote, including characters, colors, and action
+
+JSON array only. Start with [ and end with ].`;
+
+      try {
+        const response = await fetch(PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1400,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }]
+          })
+        });
+
+        const data = await response.json();
+        const raw = data.content?.map(b => b.text || '').join('') || '';
+        const clean = raw.replace(/```json|```/g, '').trim();
+        const ideas = JSON.parse(clean);
+
+        renderCards(ideas, selected);
+
+      } catch (err) {
+        document.getElementById('cards').innerHTML = `
+          <div class="error-box">
+            💬 Uh oh — the idioms got away! ${err.message}<br>
+            <small>Check that your Cloudflare proxy is running and the URL is correct.</small>
+          </div>`;
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+        btn.disabled = false;
+        btn.textContent = '💬 IDIOMIZE IT! 💬';
+      }
+    }
+
+    function renderCards(ideas, selectedIdiom) {
+      const container = document.getElementById('cards');
+      ideas.forEach((idea, i) => {
+        const types = idea.humorTypes || [];
+        const badgesHTML = types.map(t =>
+          `<span class="humor-badge">${t}</span>`
+        ).join('');
+
+        const card = document.createElement('div');
+        card.className = 'idiom-card';
+        card.style.animationDelay = `${i * 0.12}s`;
+        card.innerHTML = `
+          <div class="idiom-card-header">
+            <span class="idiom-number">QUOTE #${i + 1}</span>
+            <div style="display:flex; flex-wrap:wrap; gap:0.3rem; justify-content:flex-end;">${badgesHTML}</div>
+          </div>
+          <div class="idiom-source-bar">🎲 Idiom: <em>${escapeHTML(selectedIdiom.idiom)}</em> · "${escapeHTML(selectedIdiom.meaning)}"</div>
+          ${idea.humorMix ? `<div class="humor-mix-bar">🔀 ${escapeHTML(idea.humorMix)}</div>` : ''}
+          <div class="idiom-body">
+            <div class="idiom-quote">${escapeHTML(idea.quote)}</div>
+            <div class="idiom-attribution">${escapeHTML(idea.attribution || '')}</div>
+
+            <div class="idiom-section-title">The Idiom Twist</div>
+            <div class="idiom-explanation">${escapeHTML(idea.idiomTwist || '')}</div>
+
+            <div class="idiom-details">
+              <div class="idiom-detail-box">
+                <div class="label">Original Idiom</div>
+                <div class="value">${escapeHTML(idea.usedIdiom || selectedIdiom.idiom)}</div>
+              </div>
+              <div class="idiom-detail-box">
+                <div class="label">Humor Mix</div>
+                <div class="value">${types.join(' + ')}</div>
+              </div>
+            </div>
+
+            <div class="idiom-scene-notes">
+              <strong>🎨 Cartoon Scene</strong>
+              ${escapeHTML(idea.sceneNotes || '')}
+            </div>
+
+            <button class="copy-btn" onclick="copyQuote(this, ${JSON.stringify(idea.quote + ' ' + (idea.attribution || ''))})">
+              📋 Copy Quote
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function copyQuote(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = '✅ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = '📋 Copy Quote';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    document.getElementById('topic').addEventListener('keydown', e => {
+      if (e.key === 'Enter') generate();
+    });
+  </script>
+
+</body>
+</html>
