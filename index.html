@@ -445,22 +445,26 @@
 
     /* copy-quote button */
     .copy-btn {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.45rem 1.1rem;
-      font-family: 'Boogaloo', cursive;
-      font-size: 0.9rem;
+      display: block;
+      width: 100%;
+      margin-top: 1.2rem;
+      padding: 0.85rem 1.4rem;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
       background: var(--pink);
       color: white;
-      border: 3px solid var(--dark);
-      border-radius: 100px;
+      border: 4px solid var(--dark);
+      border-radius: 14px;
       cursor: pointer;
-      transition: transform 0.1s;
-      letter-spacing: 0.04em;
+      transition: transform 0.1s, box-shadow 0.1s;
+      letter-spacing: 0.05em;
+      box-shadow: 4px 4px 0 var(--purple);
+      text-align: center;
     }
 
-    .copy-btn:hover { transform: scale(1.05); }
-    .copy-btn.copied { background: var(--teal); }
+    .copy-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--purple); }
+    .copy-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--purple); }
+    .copy-btn.copied { background: var(--teal); box-shadow: 4px 4px 0 var(--dark); }
 
     /* error */
     .error-box {
@@ -628,8 +632,13 @@
       Metahumor:        "Humor that jokes about humor itself, or the idiom joking about being an idiom.",
     };
 
+    // ── No-repeat idiom picker — shuffled deck, resets when exhausted ──
+    let idiomDeck = [];
     function pickRandomIdiom() {
-      return IDIOMS[Math.floor(Math.random() * IDIOMS.length)];
+      if (idiomDeck.length === 0) {
+        idiomDeck = [...IDIOMS].sort(() => Math.random() - 0.5);
+      }
+      return idiomDeck.pop();
     }
 
     async function generate() {
@@ -676,24 +685,26 @@ ${humorDefsText}
 You must respond ONLY with valid JSON. No preamble, no markdown, no explanation outside the JSON.`;
 
       const userPrompt = `Topic: "${topic}"
-American Idiom: "${selected.idiom}" (original meaning: "${selected.meaning}")
+Saying to twist: "${selected.idiom}" (original meaning: "${selected.meaning}")
+Generation seed (ignore this number, it just ensures a fresh response): ${Date.now()}
 
 Active humor filters (use only these, mix them freely):
 ${filterDescriptions}
 
-Generate exactly 3 different whimsical quotes that mash the idiom with the topic. Each quote should:
+Generate exactly 3 different whimsical quotes that mash the saying with the topic. Each quote should:
 - Be short (1-2 punchy sentences)
 - Feel like twisted wisdom, a fortune cookie gone wrong, or a self-help title from a parallel universe
-- Make the idiom recognizable but hilariously misapplied to the topic
+- Make the saying recognizable but hilariously misapplied to the topic
 - Use a different combination of 2-3 active humor filters for variety
+- NEVER use the words "idiom", "saying", "expression", or "phrase" anywhere in the quote itself — the quote should just BE the twisted wisdom, not describe itself
 
 Return a JSON array of 3 objects. Each object must have these exact keys:
-- "quote": string — the short, punchy mashup quote itself (1-2 sentences, the star of the show)
+- "quote": string — the short, punchy mashup quote itself (1-2 sentences, the star of the show; must NOT contain the words idiom/saying/expression/phrase)
 - "attribution": string — a fake absurd source/author (e.g. "— The Department of Coffee Disasters, 2019" or "— Ancient Gym Proverb, probably")
 - "humorTypes": array of strings — 2-3 humor filters used (from: ${filtersToUse.join(', ')})
 - "humorMix": string — one sentence on HOW the humor techniques combine to land the joke
-- "idiomTwist": string — one sentence explaining exactly how the original idiom was warped to fit the topic
-- "usedIdiom": string — the idiom phrase as it appears in or inspired the quote
+- "idiomTwist": string — one sentence explaining exactly how the original saying was warped to fit the topic
+- "usedIdiom": string — the phrase as it appears in or inspired the quote
 - "sceneNotes": string — a vivid 1-2 sentence description of a cartoon illustration that could accompany this quote, including characters, colors, and action
 
 JSON array only. Start with [ and end with ].`;
@@ -771,8 +782,8 @@ JSON array only. Start with [ and end with ].`;
               ${escapeHTML(idea.sceneNotes || '')}
             </div>
 
-            <button class="copy-btn" onclick="copyQuote(this, ${JSON.stringify(idea.quote + ' ' + (idea.attribution || ''))})">
-              📋 Copy Quote
+            <button class="copy-btn" data-quote="${escapeAttr(idea.quote + '\n' + (idea.attribution || ''))}">
+              📋 Copy This Quote
             </button>
           </div>
         `;
@@ -780,15 +791,46 @@ JSON array only. Start with [ and end with ].`;
       });
     }
 
-    function copyQuote(btn, text) {
-      navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = '✅ Copied!';
-        btn.classList.add('copied');
-        setTimeout(() => {
-          btn.textContent = '📋 Copy Quote';
-          btn.classList.remove('copied');
-        }, 2000);
-      });
+    function escapeAttr(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // Event delegation — handles all copy buttons no matter when they're added
+    document.getElementById('cards').addEventListener('click', function(e) {
+      const btn = e.target.closest('.copy-btn');
+      if (!btn) return;
+      const text = btn.getAttribute('data-quote') || '';
+      // Fallback for browsers where clipboard API may be restricted
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => flashCopied(btn)).catch(() => fallbackCopy(btn, text));
+      } else {
+        fallbackCopy(btn, text);
+      }
+    });
+
+    function fallbackCopy(btn, text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand('copy'); flashCopied(btn); } catch(e) { btn.textContent = '⚠️ Copy failed'; }
+      document.body.removeChild(ta);
+    }
+
+    function flashCopied(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✅ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('copied');
+      }, 2000);
     }
 
     function escapeHTML(str) {
