@@ -650,14 +650,14 @@
 
       // Pick a random idiom
       const selected = pickRandomIdiom();
-      document.getElementById('idiomText').textContent = `"${selected.idiom}" — ${selected.meaning}`;
+      document.getElementById('idiomText').textContent = '"' + selected.idiom + '" — ' + selected.meaning;
       document.getElementById('idiomReveal').style.display = 'block';
 
       const checked = [...document.querySelectorAll('#filters input:checked')].map(c => c.value);
       const filtersToUse = checked.length > 0 ? checked : Object.keys(HUMOR_DEFS);
 
       const filterDescriptions = filtersToUse
-        .map(f => `- ${f}: ${HUMOR_DEFS[f]}`)
+        .map(f => '- ' + f + ': ' + HUMOR_DEFS[f])
         .join('\n');
 
       const btn = document.getElementById('generateBtn');
@@ -668,7 +668,7 @@
       document.getElementById('cards').innerHTML = '';
 
       const humorDefsText = Object.entries(HUMOR_DEFS)
-        .map(([k, v]) => `- ${k}: ${v}`)
+        .map(([k, v]) => '- ' + k + ': ' + v)
         .join('\n');
 
       const systemPrompt = `You are a one-liner writer for the "Kan-of-Worms Idiomator." Your job is to take a familiar saying and a topic and produce two short, genuinely funny quotes by mashing them together in unexpected ways.
@@ -734,7 +734,7 @@ Return a JSON array of exactly 2 objects. Each object must have these exact keys
 - "usedIdiom": string — the original saying
 - "sceneNotes": string — 1-2 sentences describing a cartoon that could accompany this quote: specific character, color palette, one action, zero explanation
 
-JSON array only. Start with [ and end with ].`;`;
+JSON array only. Start with [ and end with ].`;
 
       try {
         const response = await fetch(PROXY_URL, {
@@ -750,17 +750,14 @@ JSON array only. Start with [ and end with ].`;`;
 
         const data = await response.json();
         const raw = data.content?.map(b => b.text || '').join('') || '';
-        const clean = raw.replace(/```json|```/g, '').trim();
+        const clean = raw.replace(new RegExp('\x60\x60\x60json|\x60\x60\x60', 'g'), '').trim();
         const ideas = JSON.parse(clean);
 
         renderCards(ideas, selected);
 
       } catch (err) {
-        document.getElementById('cards').innerHTML = `
-          <div class="error-box">
-            💬 Uh oh — the idioms got away! ${err.message}<br>
-            <small>Check that your Cloudflare proxy is running and the URL is correct.</small>
-          </div>`;
+        document.getElementById('cards').innerHTML =
+          '<div class="error-box">💬 Uh oh — the idioms got away! ' + err.message + '<br><small>Check that your Cloudflare proxy is running and the URL is correct.</small></div>';
       } finally {
         document.getElementById('loading').style.display = 'none';
         btn.disabled = false;
@@ -773,89 +770,87 @@ JSON array only. Start with [ and end with ].`;`;
       ideas.forEach((idea, i) => {
         const types = idea.humorTypes || [];
         const badgesHTML = types.map(t =>
-          `<span class="humor-badge">${t}</span>`
+          '<span class="humor-badge">' + t + '</span>'
         ).join('');
 
         const card = document.createElement('div');
         card.className = 'idiom-card';
-        card.style.animationDelay = `${i * 0.12}s`;
-        card.innerHTML = `
-          <div class="idiom-card-header">
-            <span class="idiom-number">QUOTE #${i + 1}</span>
-            <div style="display:flex; flex-wrap:wrap; gap:0.3rem; justify-content:flex-end;">${badgesHTML}</div>
-          </div>
-          <div class="idiom-source-bar">🎲 Idiom: <em>${escapeHTML(selectedIdiom.idiom)}</em> · "${escapeHTML(selectedIdiom.meaning)}"</div>
-          ${idea.humorMix ? `<div class="humor-mix-bar">🔀 ${escapeHTML(idea.humorMix)}</div>` : ''}
-          <div class="idiom-body">
-            <div class="idiom-quote">${escapeHTML(idea.quote)}</div>
-            <div class="idiom-attribution">${escapeHTML(idea.attribution || '')}</div>
-
-            <div class="idiom-section-title">The Idiom Twist</div>
-            <div class="idiom-explanation">${escapeHTML(idea.idiomTwist || '')}</div>
-
-            <div class="idiom-details">
-              <div class="idiom-detail-box">
-                <div class="label">Original Idiom</div>
-                <div class="value">${escapeHTML(idea.usedIdiom || selectedIdiom.idiom)}</div>
-              </div>
-              <div class="idiom-detail-box">
-                <div class="label">Humor Mix</div>
-                <div class="value">${types.join(' + ')}</div>
-              </div>
-            </div>
-
-            <div class="idiom-scene-notes">
-              <strong>🎨 Cartoon Scene</strong>
-              ${escapeHTML(idea.sceneNotes || '')}
-            </div>
-
-            <button class="copy-btn" data-quote="${escapeAttr(idea.quote + '\n' + (idea.attribution || ''))}">
-              📋 Copy This Quote
-            </button>
-          </div>
-        `;
+        card.style.animationDelay = (i * 0.12) + 's';
+        const mixBar = idea.humorMix
+          ? '<div class="humor-mix-bar">🔀 ' + escapeHTML(idea.humorMix) + '</div>'
+          : '';
+        card.innerHTML =
+          '<div class="idiom-card-header">' +
+            '<span class="idiom-number">QUOTE #' + (i + 1) + '</span>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:0.3rem;justify-content:flex-end;">' + badgesHTML + '</div>' +
+          '</div>' +
+          '<div class="idiom-source-bar">🎲 <em>' + escapeHTML(selectedIdiom.idiom) + '</em> &middot; &ldquo;' + escapeHTML(selectedIdiom.meaning) + '&rdquo;</div>' +
+          mixBar +
+          '<div class="idiom-body">' +
+            '<div class="idiom-quote">' + escapeHTML(idea.quote) + '</div>' +
+            '<div class="idiom-attribution">' + escapeHTML(idea.attribution || '') + '</div>' +
+            '<div class="idiom-section-title">The Twist</div>' +
+            '<div class="idiom-explanation">' + escapeHTML(idea.idiomTwist || '') + '</div>' +
+            '<div class="idiom-details">' +
+              '<div class="idiom-detail-box">' +
+                '<div class="label">Original Saying</div>' +
+                '<div class="value">' + escapeHTML(idea.usedIdiom || selectedIdiom.idiom) + '</div>' +
+              '</div>' +
+              '<div class="idiom-detail-box">' +
+                '<div class="label">Humor Mix</div>' +
+                '<div class="value">' + types.join(' + ') + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="idiom-scene-notes">' +
+              '<strong>🎨 Cartoon Scene</strong>' +
+              escapeHTML(idea.sceneNotes || '') +
+            '</div>' +
+            '<button class="copy-btn" id="copybtn-' + i + '">📋 Copy This Quote</button>' +
+          '</div>';
         container.appendChild(card);
+
+        // Attach copy handler directly — no HTML encoding involved
+        const copyBtn = card.querySelector('.copy-btn');
+        const copyText = idea.quote + '\n' + (idea.attribution || '');
+        copyBtn.addEventListener('click', function() {
+          doCopy(copyBtn, copyText);
+        });
       });
     }
 
-    function escapeAttr(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-    }
-
-    // Event delegation — handles all copy buttons no matter when they're added
-    document.getElementById('cards').addEventListener('click', function(e) {
-      const btn = e.target.closest('.copy-btn');
-      if (!btn) return;
-      const text = btn.getAttribute('data-quote') || '';
-      // Fallback for browsers where clipboard API may be restricted
+    function doCopy(btn, text) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => flashCopied(btn)).catch(() => fallbackCopy(btn, text));
+        navigator.clipboard.writeText(text)
+          .then(() => flashCopied(btn))
+          .catch(() => fallbackCopy(btn, text));
       } else {
         fallbackCopy(btn, text);
       }
-    });
+    }
 
     function fallbackCopy(btn, text) {
       const ta = document.createElement('textarea');
       ta.value = text;
-      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+      ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none;';
       document.body.appendChild(ta);
       ta.focus();
       ta.select();
-      try { document.execCommand('copy'); flashCopied(btn); } catch(e) { btn.textContent = '⚠️ Copy failed'; }
+      try {
+        const ok = document.execCommand('copy');
+        if (ok) flashCopied(btn);
+        else btn.textContent = '⚠️ Copy failed';
+      } catch(e) {
+        btn.textContent = '⚠️ Copy failed';
+      }
       document.body.removeChild(ta);
     }
 
     function flashCopied(btn) {
-      const orig = btn.textContent;
-      btn.textContent = '✅ Copied!';
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✅ Copied!';
       btn.classList.add('copied');
       setTimeout(() => {
-        btn.textContent = orig;
+        btn.innerHTML = orig;
         btn.classList.remove('copied');
       }, 2000);
     }
