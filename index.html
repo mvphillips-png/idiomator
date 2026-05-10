@@ -619,17 +619,17 @@
     ];
 
     const HUMOR_DEFS = {
-      Irony:            "The intended meaning is the opposite of what's said — delivered with a straight face.",
-      Wordplay:         "Puns, double meanings, or repurposed idiom words to create a new joke.",
-      Hyperbole:        "An exaggeration taken to an impossible, absurd extreme.",
-      Deadpan:          "Completely serious tone used to deliver utter nonsense.",
-      Absurdist:        "Logic is abandoned entirely — anything goes and it somehow makes sense.",
-      Sarcasm:          "Biting, pointed mockery of the subject dressed as a compliment.",
-      Parody:           "Mimicking the style of something well-known to mock it.",
-      "Misplaced Focus":"Deliberately ignoring the important thing to fixate on something trivial.",
-      Madcap:           "Pure wild silliness — wacky energy, no rules, anything-goes chaos.",
-      Analogy:          "Comparing two wildly different things to illuminate both in a funny way.",
-      Metahumor:        "Humor that jokes about humor itself, or the idiom joking about being an idiom.",
+      Irony:            "Voice: flat, sincere, slightly bureaucratic. Technique: state the opposite of the truth as if filing a report. The gap between what's said and what's real IS the joke — never wink at it. End on the straight-faced kicker, not the setup.",
+      Wordplay:         "Voice: gleefully unhinged grammarian. Technique: hijack a word inside the saying and force it to mean something else in the topic's world. The misdirect must land in the LAST word or phrase — never in the middle. Groan-worthy is the goal.",
+      Hyperbole:        "Voice: breathless infomercial meets Greek tragedy. Technique: pick one tiny detail and inflate it to cosmic, geological, or biblical scale — involving a completely unrelated third party if possible. The exaggeration must be so specific it loops back to believable.",
+      Deadpan:          "Voice: exhausted expert who has seen too much. Technique: deliver a completely unhinged observation in the driest possible register — no exclamation, no setup, no explanation. Reads like a warning label written by someone who gave up on humanity. The weirder the content, the flatter the delivery.",
+      Absurdist:        "Voice: nature documentary narrator describing something that cannot exist. Technique: introduce one impossible element stated as mundane fact, then follow its logic one step further than anyone would. Never acknowledge the absurdity — treat it as the obvious solution. Inspired by single-panel cartoons where the caption shouldn't work but does.",
+      Sarcasm:          "Voice: tired customer service rep who's had enough. Technique: frame a devastating truth as glowing praise, or vice versa — the bite comes from the mismatch between tone and content. Works best when the sarcasm targets a behavior everyone recognizes but nobody admits.",
+      Parody:           "Voice: whatever genre is being mocked, played completely straight. Technique: borrow the exact cadence of a specific format — warning label, horoscope, motivational poster, terms & conditions, fortune cookie — and inject the topic's absurdity into it without breaking the format's tone.",
+      "Misplaced Focus":"Voice: someone who missed the memo on what matters. Technique: acknowledge the enormous obvious thing in passing, then spend the whole quote laser-focused on something trivially unrelated. The joke is in the proportion — the bigger the real issue being ignored, the funnier the trivial fixation.",
+      Madcap:           "Voice: unhinged children's book author with no editorial oversight. Technique: chain two or three wildly incompatible images or actions into a single breathless sentence that somehow ends with confident advice. Energy is everything — it should feel like it was written in one second by someone vibrating.",
+      Analogy:          "Voice: professor who lost the thread halfway through the lecture. Technique: draw a comparison between the topic and something so unrelated that the connection only makes sense for exactly one absurd reason — then commit to it fully without explaining why. The analogy should feel wrong and then suddenly right.",
+      Metahumor:        "Voice: the quote itself becoming self-aware and annoyed about it. Technique: have the quote acknowledge its own construction, its own failure, or the reader's expectation — and then subvert that acknowledgment. Works best when the punchline undermines the setup FROM INSIDE the setup.",
     };
 
     // ── No-repeat idiom picker — shuffled deck, resets when exhausted ──
@@ -671,43 +671,70 @@
         .map(([k, v]) => `- ${k}: ${v}`)
         .join('\n');
 
-      const systemPrompt = `You are the creative engine of the "Kan-of-Worms Idiomator" — a whimsical quote generator that takes an American idiom and a user-supplied topic and produces short, funny, slightly absurd quotes by mashing them together.
+      const systemPrompt = `You are a one-liner writer for the "Kan-of-Worms Idiomator." Your job is to take a familiar saying and a topic and produce two short, genuinely funny quotes by mashing them together in unexpected ways.
 
-The quotes should feel like a bumper sticker, fortune cookie, or self-help book title that got scrambled in a blender. They are SHORT (1-2 sentences max), punchy, and read like real wisdom that is completely unhinged.
+WHAT MAKES THESE FUNNY — READ THIS CAREFULLY:
 
-The idiom should be visibly twisted, warped, or reapplied to the topic in an unexpected way — the original meaning should be recognizable but hilariously misapplied.
+1. THE PUNCHLINE STRUCTURE IS NON-NEGOTIABLE.
+   Every quote must follow: Setup → Misdirect → Gut-punch ending.
+   The last 3-5 words do the killing. The setup exists only to make the ending land harder.
+   If the funniest part is in the middle, rewrite it so it's at the end.
 
-You have humor techniques to layer together. The best quotes combine 2-3 techniques.
+2. KILL THE OBVIOUS FIRST.
+   Before writing anything, mentally generate your first instinct for the quote. Reject it.
+   Generate your second instinct. Reject it.
+   Write the THIRD idea — the one that surprises even you.
 
-THE HUMOR TECHNIQUES:
+3. DON'T EXPLAIN THE JOKE.
+   The quote must not connect its own dots. No "just like when..." No "which is a lot like..."
+   State the absurd thing. Stop. Let the reader's brain do the work.
+   If the quote could have a comma where you're tempted to explain — cut everything after that comma.
+
+4. VOICE IS EVERYTHING.
+   Each humor technique comes with a specific voice and a specific mechanical instruction.
+   Follow both. The voice determines HOW it sounds. The technique determines WHAT it does.
+   A Deadpan quote that sounds energetic has failed. An Absurdist quote that acknowledges its own weirdness has failed.
+
+5. SPECIFICITY OVER GENERALITY — ALWAYS.
+   "Coffee makes you anxious" is weak. "Coffee gives you the confidence of a golden retriever and the decision-making of a golden retriever" is specific and weird.
+   Reach for the odd concrete detail — a number, a brand category, a physical sensation, a bureaucratic entity — over vague concepts.
+
+THE HUMOR TECHNIQUES (voice + mechanical instruction for each):
 ${humorDefsText}
 
 You must respond ONLY with valid JSON. No preamble, no markdown, no explanation outside the JSON.`;
 
       const userPrompt = `Topic: "${topic}"
 Saying to twist: "${selected.idiom}" (original meaning: "${selected.meaning}")
-Generation seed (ignore this number, it just ensures a fresh response): ${Date.now()}
+Generation seed: ${Date.now()}
 
-Active humor filters (use only these, mix them freely):
+Active humor filters for this round (use only these):
 ${filterDescriptions}
 
-Generate exactly 3 different whimsical quotes that mash the saying with the topic. Each quote should:
-- Be short (1-2 punchy sentences)
-- Feel like twisted wisdom, a fortune cookie gone wrong, or a self-help title from a parallel universe
-- Make the saying recognizable but hilariously misapplied to the topic
-- Use a different combination of 2-3 active humor filters for variety
-- NEVER use the words "idiom", "saying", "expression", or "phrase" anywhere in the quote itself — the quote should just BE the twisted wisdom, not describe itself
+YOUR PROCESS — follow this exactly:
+Step 1: Identify what makes the saying WEIRD if taken literally in the context of this topic.
+Step 2: Find the word or image in the saying that clashes MOST unexpectedly with the topic.
+Step 3: Mentally write your first two ideas. Discard both.
+Step 4: Write the two quotes from your third and fourth ideas — the unexpected ones.
 
-Return a JSON array of 3 objects. Each object must have these exact keys:
-- "quote": string — the short, punchy mashup quote itself (1-2 sentences, the star of the show; must NOT contain the words idiom/saying/expression/phrase)
-- "attribution": string — a fake absurd source/author (e.g. "— The Department of Coffee Disasters, 2019" or "— Ancient Gym Proverb, probably")
-- "humorTypes": array of strings — 2-3 humor filters used (from: ${filtersToUse.join(', ')})
-- "humorMix": string — one sentence on HOW the humor techniques combine to land the joke
-- "idiomTwist": string — one sentence explaining exactly how the original saying was warped to fit the topic
-- "usedIdiom": string — the phrase as it appears in or inspired the quote
-- "sceneNotes": string — a vivid 1-2 sentence description of a cartoon illustration that could accompany this quote, including characters, colors, and action
+QUOTE REQUIREMENTS:
+- Maximum 2 sentences. One is better.
+- Punchline must land in the FINAL words — never the middle.
+- Do NOT use the words: idiom, saying, expression, phrase, or metaphor.
+- Do NOT connect the dots — no "just like", "which means", "in other words."
+- Do NOT be gentle. Commit fully to the weirdest version of the idea.
+- Each quote must use a different combination of 2-3 active humor filters.
 
-JSON array only. Start with [ and end with ].`;
+Return a JSON array of exactly 2 objects. Each object must have these exact keys:
+- "quote": string — the final punchy quote (punchline at the end; forbidden words: idiom/saying/expression/phrase/metaphor)
+- "attribution": string — a fake absurd source (e.g. "— The Bureau of Caffeinated Regret, Vol. 3" or "— Overheard at a very specific Tuesday")
+- "humorTypes": array of strings — 2-3 filters used (from: ${filtersToUse.join(', ')})
+- "humorMix": string — one sentence on how the techniques MECHANICALLY combine to land the punchline
+- "idiomTwist": string — one sentence: which word in the saying was hijacked and what it was forced to mean instead
+- "usedIdiom": string — the original saying
+- "sceneNotes": string — 1-2 sentences describing a cartoon that could accompany this quote: specific character, color palette, one action, zero explanation
+
+JSON array only. Start with [ and end with ].`;`;
 
       try {
         const response = await fetch(PROXY_URL, {
@@ -715,7 +742,7 @@ JSON array only. Start with [ and end with ].`;
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'claude-sonnet-4-20250514',
-            max_tokens: 1400,
+            max_tokens: 1600,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }]
           })
