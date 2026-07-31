@@ -797,17 +797,50 @@ JSON array only. Start with [ and end with ].`;
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1600,
+            model: 'claude-sonnet-4-6',
+            max_tokens: 2000,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }]
           })
         });
 
         const data = await response.json();
-        const raw = data.content?.map(b => b.text || '').join('') || '';
+
+        // Surface API errors instead of silently producing an empty string
+        if (data.error) {
+          throw new Error('API error: ' + (data.error.message || JSON.stringify(data.error)));
+        }
+        if (!response.ok) {
+          throw new Error('Proxy returned HTTP ' + response.status);
+        }
+        if (!Array.isArray(data.content) || data.content.length === 0) {
+          throw new Error('Empty response from API. Raw: ' + JSON.stringify(data).slice(0, 300));
+        }
+
+        const raw = data.content.map(b => b.text || '').join('');
+        if (!raw.trim()) {
+          throw new Error('Model returned no text content.');
+        }
+
         const clean = raw.replace(new RegExp('\x60\x60\x60json|\x60\x60\x60', 'g'), '').trim();
-        const ideas = JSON.parse(clean);
+
+        let ideas;
+        try {
+          ideas = JSON.parse(clean);
+        } catch (parseErr) {
+          // Attempt recovery: grab the outermost JSON array
+          const first = clean.indexOf('[');
+          const last  = clean.lastIndexOf(']');
+          if (first !== -1 && last > first) {
+            ideas = JSON.parse(clean.slice(first, last + 1));
+          } else {
+            throw new Error('Could not parse model output. Got: ' + clean.slice(0, 200));
+          }
+        }
+
+        if (!Array.isArray(ideas) || ideas.length === 0) {
+          throw new Error('Model did not return a quote array.');
+        }
 
         renderCards(ideas, selected);
 
