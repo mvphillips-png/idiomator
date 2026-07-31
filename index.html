@@ -632,14 +632,46 @@
       Metahumor:        "Voice: the quote itself becoming self-aware and annoyed about it. Technique: have the quote acknowledge its own construction, its own failure, or the reader's expectation — and then subvert that acknowledgment. Works best when the punchline undermines the setup FROM INSIDE the setup.",
     };
 
-    // ── No-repeat idiom picker — shuffled deck, resets when exhausted ──
-    let idiomDeck = [];
-    function pickRandomIdiom() {
-      if (idiomDeck.length === 0) {
-        idiomDeck = [...IDIOMS].sort(() => Math.random() - 0.5);
-      }
-      return idiomDeck.pop();
+    // ── QUOTE FORMS — forces structural variety, kills narrative default ──
+    const QUOTE_FORMS = [
+      { name: "The Rule",        spec: "A flat prohibition or command. Starts with Never / Always / Do not. No characters, no story. Second person or universal." },
+      { name: "The Definition",  spec: "States what the topic actually IS, in absurd reductive terms. Format: '[Topic] is just ___.' No characters." },
+      { name: "The Warning",     spec: "A safety notice for something that cannot be made safe. Clipped, official, slightly too late. No characters." },
+      { name: "The Confession",  spec: "First person. 'I' did the thing. Short, resigned admission with an unexpected consequence. Never third person." },
+      { name: "The Proverb",     spec: "Ancient-sounding folk wisdom that collapses on inspection. Gnomic present tense. No named people." },
+      { name: "The Instruction", spec: "Two or three clipped imperatives in sequence. Reads like assembly directions for a disaster. Second person only." },
+      { name: "The Statistic",   spec: "A specific fabricated number presented as research. Format: '[Number] of [group] ___.' Institutional tone." },
+      { name: "The Label",       spec: "Product packaging copy. 'Contains ___. May cause ___.' Clipped fragments, no full sentences needed." },
+      { name: "The Correction",  spec: "Someone is wrong and is being corrected about the topic. Terse, pedantic, escalating. No story setup." },
+      { name: "The Diagnosis",   spec: "Clinical assessment of the topic as if it were a medical condition. Detached professional register." }
+    ];
+
+    // ── SPICE — one extra constraint per quote to force odd angles ──
+    const SPICE = [
+      "Must include one oddly specific number.",
+      "Must name a bureaucratic or institutional entity that should not exist.",
+      "Must end on a concrete noun, not an adjective or verb.",
+      "Must include a physical sensation.",
+      "Must contain exactly one word that feels too formal for the sentence.",
+      "Must reference a unit of time.",
+      "Must include a piece of equipment or object nobody asked about.",
+      "Must treat something inanimate as if it has feelings or legal standing.",
+      "Must include a location that is far too specific.",
+      "Must use a verb that does not belong in this context."
+    ];
+
+    // ── No-repeat deck helper ──
+    function makeDeck(source) {
+      let deck = [];
+      return function() {
+        if (deck.length === 0) deck = [...source].sort(() => Math.random() - 0.5);
+        return deck.pop();
+      };
     }
+
+    const pickRandomIdiom = makeDeck(IDIOMS);
+    const pickForm        = makeDeck(QUOTE_FORMS);
+    const pickSpice       = makeDeck(SPICE);
 
     async function generate() {
       const topic = document.getElementById('topic').value.trim();
@@ -652,6 +684,13 @@
       const selected = pickRandomIdiom();
       document.getElementById('idiomText').textContent = '"' + selected.idiom + '" — ' + selected.meaning;
       document.getElementById('idiomReveal').style.display = 'block';
+
+      // Pick two different structural forms + two spice constraints
+      const formA  = pickForm();
+      let   formB  = pickForm();
+      if (formB.name === formA.name) formB = pickForm();
+      const spiceA = pickSpice();
+      const spiceB = pickSpice();
 
       const checked = [...document.querySelectorAll('#filters input:checked')].map(c => c.value);
       const filtersToUse = checked.length > 0 ? checked : Object.keys(HUMOR_DEFS);
@@ -671,68 +710,85 @@
         .map(([k, v]) => '- ' + k + ': ' + v)
         .join('\n');
 
-      const systemPrompt = `You are a one-liner writer for the "Kan-of-Worms Idiomator." Your job is to take a familiar saying and a topic and produce two short, genuinely funny quotes by mashing them together in unexpected ways.
+      const systemPrompt = `You write short, brutal one-liners. Not stories. Not paragraphs. One-liners.
 
-WHAT MAKES THESE FUNNY — READ THIS CAREFULLY:
+THE SINGLE MOST IMPORTANT RULE: BREVITY.
+Maximum 18 words per quote. Under 12 is better. If your quote is 25 words, you have failed.
+The joke is almost always in the last 4 words. Everything before it is windup. CUT THE WINDUP.
+Bad (28 words, joke buried): "When she hit the ground running to tell him about the promotion, the resulting syllable-shockwave collapsed fourteen medieval cathedrals, none of which had been structurally consulted."
+Good (10 words, joke exposed): "Fourteen cathedrals collapsed. None had been structurally consulted."
+Same joke. Half the words. Twice the damage.
 
-1. THE PUNCHLINE STRUCTURE IS NON-NEGOTIABLE.
-   Every quote must follow: Setup → Misdirect → Gut-punch ending.
-   The last 3-5 words do the killing. The setup exists only to make the ending land harder.
-   If the funniest part is in the middle, rewrite it so it's at the end.
+BANNED — THESE WILL RUIN THE QUOTE:
+- NO STORIES. Never write "When she...", "When he...", "A man walked...", "Someone once..."
+- NO INVENTED PEOPLE. No "she", "he", "a woman", "a man", "my friend", "a guy." The topic is the subject, not a character.
+- NO SCENE SETTING. Do not establish a situation before the joke. Open ON the joke.
+- NO EXPLAINING. No "just like", "which means", "in other words", "the result being."
+- NO SELF-REFERENCE. Never use the words idiom, saying, expression, phrase, metaphor, or proverb.
 
-2. KILL THE OBVIOUS FIRST.
-   Before writing anything, mentally generate your first instinct for the quote. Reject it.
-   Generate your second instinct. Reject it.
-   Write the THIRD idea — the one that surprises even you.
+WHAT TO DO INSTEAD:
+Address the reader directly, state a universal law, or make the topic itself the subject.
+Every quote is assigned a STRUCTURAL FORM. Obey it exactly — the form determines the grammar and the point of view.
+Every quote is assigned a SPICE CONSTRAINT. Obey it exactly — it forces an unexpected angle.
 
-3. DON'T EXPLAIN THE JOKE.
-   The quote must not connect its own dots. No "just like when..." No "which is a lot like..."
-   State the absurd thing. Stop. Let the reader's brain do the work.
-   If the quote could have a comma where you're tempted to explain — cut everything after that comma.
+SPECIFICITY IS THE ENGINE.
+Vague is never funny. "It makes you tired" is dead. "It gives you the stamina of a folding chair" is alive.
+Reach for: an exact number, a bureaucratic entity, a physical sensation, a piece of equipment, a wrong-register verb.
+The stranger and more concrete the detail, the harder it lands.
 
-4. VOICE IS EVERYTHING.
-   Each humor technique comes with a specific voice and a specific mechanical instruction.
-   Follow both. The voice determines HOW it sounds. The technique determines WHAT it does.
-   A Deadpan quote that sounds energetic has failed. An Absurdist quote that acknowledges its own weirdness has failed.
+KILL YOUR FIRST TWO IDEAS.
+Write your first instinct. Discard it — it is the obvious one.
+Write your second. Discard it too.
+The third idea is the one nobody expects. That is the one you submit.
 
-5. SPECIFICITY OVER GENERALITY — ALWAYS.
-   "Coffee makes you anxious" is weak. "Coffee gives you the confidence of a golden retriever and the decision-making of a golden retriever" is specific and weird.
-   Reach for the odd concrete detail — a number, a brand category, a physical sensation, a bureaucratic entity — over vague concepts.
-
-THE HUMOR TECHNIQUES (voice + mechanical instruction for each):
+THE HUMOR TECHNIQUES (voice + mechanical instruction):
 ${humorDefsText}
 
-You must respond ONLY with valid JSON. No preamble, no markdown, no explanation outside the JSON.`;
+Respond ONLY with valid JSON. No preamble, no markdown, no commentary.`;
 
       const userPrompt = `Topic: "${topic}"
-Saying to twist: "${selected.idiom}" (original meaning: "${selected.meaning}")
-Generation seed: ${Date.now()}
+Saying to twist: "${selected.idiom}" (means: "${selected.meaning}")
+Seed: ${Date.now()}
 
-Active humor filters for this round (use only these):
+Available humor techniques this round:
 ${filterDescriptions}
 
-YOUR PROCESS — follow this exactly:
-Step 1: Identify what makes the saying WEIRD if taken literally in the context of this topic.
-Step 2: Find the word or image in the saying that clashes MOST unexpectedly with the topic.
-Step 3: Mentally write your first two ideas. Discard both.
-Step 4: Write the two quotes from your third and fourth ideas — the unexpected ones.
+═══ QUOTE 1 — MANDATORY SPECIFICATIONS ═══
+STRUCTURAL FORM: ${formA.name}
+FORM RULES: ${formA.spec}
+SPICE CONSTRAINT: ${spiceA}
 
-QUOTE REQUIREMENTS:
-- Maximum 2 sentences. One is better.
-- Punchline must land in the FINAL words — never the middle.
-- Do NOT use the words: idiom, saying, expression, phrase, or metaphor.
-- Do NOT connect the dots — no "just like", "which means", "in other words."
-- Do NOT be gentle. Commit fully to the weirdest version of the idea.
-- Each quote must use a different combination of 2-3 active humor filters.
+═══ QUOTE 2 — MANDATORY SPECIFICATIONS ═══
+STRUCTURAL FORM: ${formB.name}
+FORM RULES: ${formB.spec}
+SPICE CONSTRAINT: ${spiceB}
 
-Return a JSON array of exactly 2 objects. Each object must have these exact keys:
-- "quote": string — the final punchy quote (punchline at the end; forbidden words: idiom/saying/expression/phrase/metaphor)
-- "attribution": string — a fake absurd source (e.g. "— The Bureau of Caffeinated Regret, Vol. 3" or "— Overheard at a very specific Tuesday")
-- "humorTypes": array of strings — 2-3 filters used (from: ${filtersToUse.join(', ')})
-- "humorMix": string — one sentence on how the techniques MECHANICALLY combine to land the punchline
-- "idiomTwist": string — one sentence: which word in the saying was hijacked and what it was forced to mean instead
+BEFORE YOU WRITE EACH QUOTE:
+Step 1 — Take the saying literally. What is physically absurd about it in this topic's world?
+Step 2 — Find the ONE word in the saying that clashes hardest with the topic. That word is your hinge.
+Step 3 — Write two obvious versions. Delete them both.
+Step 4 — Write the third version in the assigned FORM, satisfying the assigned SPICE, in 18 words or fewer.
+Step 5 — Count your words. Over 18? Cut the setup, not the punchline.
+Step 6 — Is the funniest thing at the very end? If not, restructure so it is.
+
+HARD REQUIREMENTS FOR BOTH QUOTES:
+- 18 words maximum. Count them.
+- Punchline in the final words.
+- No "she", "he", or any invented character.
+- No narrative openers ("When...", "After...", "Once...").
+- Must obey its assigned STRUCTURAL FORM exactly.
+- Must satisfy its assigned SPICE CONSTRAINT.
+- Must use 2 or 3 humor techniques from the list above — never just one.
+
+Return a JSON array of exactly 2 objects with these exact keys:
+- "quote": string — 18 words max, punchline last, no characters, no narrative
+- "form": string — the assigned structural form name for this quote
+- "attribution": string — an absurd institutional source (e.g. "— Bureau of Caffeinated Regret, Vol. 3")
+- "humorTypes": array of strings — exactly 2 or 3 techniques from: ${filtersToUse.join(', ')}
+- "humorMix": string — one sentence on how those techniques mechanically combine
+- "idiomTwist": string — one sentence: which word was hijacked, and what it was forced to mean
 - "usedIdiom": string — the original saying
-- "sceneNotes": string — 1-2 sentences describing a cartoon that could accompany this quote: specific character, color palette, one action, zero explanation
+- "sceneNotes": string — 1-2 sentences: one character, one action, a color palette, zero explanation
 
 JSON array only. Start with [ and end with ].`;
 
@@ -741,7 +797,7 @@ JSON array only. Start with [ and end with ].`;
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
+            model: 'claude-sonnet-4-20250514',
             max_tokens: 1600,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }]
@@ -776,6 +832,7 @@ JSON array only. Start with [ and end with ].`;
         const card = document.createElement('div');
         card.className = 'idiom-card';
         card.style.animationDelay = (i * 0.12) + 's';
+        const wordCount = String(idea.quote || '').trim().split(/\s+/).length;
         const mixBar = idea.humorMix
           ? '<div class="humor-mix-bar">🔀 ' + escapeHTML(idea.humorMix) + '</div>'
           : '';
@@ -799,6 +856,10 @@ JSON array only. Start with [ and end with ].`;
               '<div class="idiom-detail-box">' +
                 '<div class="label">Humor Mix</div>' +
                 '<div class="value">' + types.join(' + ') + '</div>' +
+              '</div>' +
+              '<div class="idiom-detail-box full">' +
+                '<div class="label">Structural Form</div>' +
+                '<div class="value">' + escapeHTML(idea.form || '—') + ' &middot; ' + wordCount + ' words</div>' +
               '</div>' +
             '</div>' +
             '<div class="idiom-scene-notes">' +
